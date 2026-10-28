@@ -76,7 +76,11 @@ npm install
 npm run dev
 ```
 
-You need `DATABASE_URL` in `.env.local`. Discord can't reach `localhost`, so test the bot on the deployed site.
+Open http://localhost:3000. You don't need an account or a database: if `DATABASE_URL` isn't set, development mode uses a built-in local Postgres (PGlite) saved in the `.local-db` folder. To start over, stop the server and delete `.local-db`. To test against your real Neon database instead, put `DATABASE_URL` in `.env.local`.
+
+To see your friend's name instead of "our friend", create `.env.local` containing `FRIEND_NAME=Sam`.
+
+Discord can't reach `localhost`, so test the bot on the deployed site.
 
 ## How it works
 
