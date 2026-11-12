@@ -30,6 +30,14 @@ const SCHEMA = `
   );
   CREATE UNIQUE INDEX IF NOT EXISTS one_active_wait ON wait_periods ((true)) WHERE ended_at IS NULL;
   CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value JSONB NOT NULL);
+  CREATE TABLE IF NOT EXISTS wait_notes (
+    id SERIAL PRIMARY KEY,
+    period_id INTEGER NOT NULL REFERENCES wait_periods(id) ON DELETE CASCADE,
+    author TEXT,
+    body TEXT NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+  );
+  CREATE INDEX IF NOT EXISTS wait_notes_period ON wait_notes (period_id);
 `;
 
 /**

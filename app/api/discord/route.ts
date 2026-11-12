@@ -1,7 +1,7 @@
 import { after } from "next/server";
 import { verifyDiscordRequest, editOriginal, followUp, panelMessage, postPanel, refreshPanel } from "@/lib/discord";
-import { endText, startText, summaryText } from "@/lib/messages";
-import { endWait, friendName, getSummary, startWait } from "@/lib/waits";
+import { endText, noteText, startText, summaryText } from "@/lib/messages";
+import { addNote, endWait, friendName, getSummary, startWait } from "@/lib/waits";
 
 export const runtime = "nodejs";
 
@@ -24,7 +24,11 @@ type Interaction = {
   member?: { nick?: string | null; user: DiscordUser };
   user?: DiscordUser;
   message?: { id: string };
-  data?: { name?: string; custom_id?: string; options?: { name: string }[] };
+  data?: {
+    name?: string;
+    custom_id?: string;
+    options?: { name: string; options?: { name: string; value: string }[] }[];
+  };
 };
 
 function displayName(i: Interaction) {
@@ -76,6 +80,12 @@ export async function POST(req: Request) {
           const s = await getSummary();
           if (p) await refreshPanel(s);
           return { content: endText(friend, by, p, s) };
+        }
+        if (sub === "note") {
+          const text = i.data?.options?.[0]?.options?.find((o) => o.name === "text")?.value?.trim() ?? "";
+          const n = text ? await addNote(by, text) : null;
+          if (n) await refreshPanel();
+          return { content: noteText(friend, by, n) };
         }
         return { content: summaryText(await getSummary()) };
       }),

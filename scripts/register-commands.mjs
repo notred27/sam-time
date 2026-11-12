@@ -15,6 +15,12 @@ const commands = [
       { type: 1, name: "start", description: "Start a waiting period" },
       { type: 1, name: "end", description: "End the current waiting period (they showed up)" },
       { type: 1, name: "total", description: "Show the total time spent waiting" },
+      {
+        type: 1,
+        name: "note",
+        description: "Share a thought about the current wait",
+        options: [{ type: 3, name: "text", description: "What are you thinking?", required: true, max_length: 500 }],
+      },
       { type: 1, name: "panel", description: "Post a pinned panel with Start / Done buttons in this channel" },
     ],
   },

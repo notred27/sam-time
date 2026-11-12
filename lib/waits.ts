@@ -1,3 +1,4 @@
+import { MIN_COUNTED_SECONDS } from "./constants";
 import { sql } from "./db";
 
 // All times are unix seconds (float), computed in SQL so we never depend on driver date parsing.
@@ -9,6 +10,14 @@ export type Period = {
   endedBy: string | null;
 };
 
+export type Note = {
+  id: number;
+  periodId: number;
+  author: string | null;
+  body: string;
+  created: number;
+};
+
 export type Summary = {
   friend: string;
   now: number;
@@ -17,8 +26,16 @@ export type Summary = {
   completedSeconds: number;
   completedCount: number;
   longestSeconds: number;
+  /** Average of completed waits of at least MIN_COUNTED_SECONDS; 0 if there are none. */
+  averageSeconds: number;
   recent: Period[];
+  /** Notes on the waits in `recent`, oldest first. */
+  notes: Note[];
+  /** Completed waits of at least MIN_COUNTED_SECONDS, oldest first (newest HISTORY_LIMIT), for the chart. */
+  history: { started: number; seconds: number }[];
 };
+
+const HISTORY_LIMIT = 365;
 
 type Row = {
   id: number;
@@ -39,17 +56,22 @@ function toPeriod(r: Row): Period {
 }
 
 export function friendName() {
-  return process.env.FRIEND_NAME?.trim() || "our friend";
+  return process.env.FRIEND_NAME?.trim() || "Sam";
 }
 
 export async function getSummary(): Promise<Summary> {
   const db = sql();
-  const [stats, recent, now] = await Promise.all([
+  const [stats, recent, history, notes, now] = await Promise.all([
     db`
       SELECT
         COALESCE(SUM(EXTRACT(EPOCH FROM ended_at - started_at)), 0)::float8 AS total,
         COUNT(*)::int AS count,
-        COALESCE(MAX(EXTRACT(EPOCH FROM ended_at - started_at)), 0)::float8 AS longest
+        COALESCE(MAX(EXTRACT(EPOCH FROM ended_at - started_at)), 0)::float8 AS longest,
+        COALESCE(
+          AVG(EXTRACT(EPOCH FROM ended_at - started_at))
+            FILTER (WHERE EXTRACT(EPOCH FROM ended_at - started_at)::float8 >= ${MIN_COUNTED_SECONDS}::float8),
+          0
+        )::float8 AS average
       FROM wait_periods
       WHERE ended_at IS NOT NULL
     `,
@@ -62,10 +84,31 @@ export async function getSummary(): Promise<Summary> {
       ORDER BY started_at DESC
       LIMIT 25
     `,
+    db`
+      SELECT
+        EXTRACT(EPOCH FROM started_at)::float8 AS started,
+        EXTRACT(EPOCH FROM ended_at - started_at)::float8 AS seconds
+      FROM wait_periods
+      WHERE ended_at IS NOT NULL
+        AND EXTRACT(EPOCH FROM ended_at - started_at)::float8 >= ${MIN_COUNTED_SECONDS}::float8
+      ORDER BY started_at DESC
+      LIMIT ${HISTORY_LIMIT}
+    `,
+    db`
+      SELECT id, period_id AS "periodId", author, body,
+        EXTRACT(EPOCH FROM created_at)::float8 AS created
+      FROM wait_notes
+      WHERE period_id IN (SELECT id FROM wait_periods ORDER BY started_at DESC LIMIT 25)
+      ORDER BY created_at
+    `.catch((e) => {
+      // A database set up before notes existed has no wait_notes table yet; show no notes rather than break.
+      if ((e as { code?: string }).code === "42P01") return [];
+      throw e;
+    }),
     db`SELECT EXTRACT(EPOCH FROM now())::float8 AS now`,
   ]);
 
-  const s = (stats as { total: number; count: number; longest: number }[])[0];
+  const s = (stats as { total: number; count: number; longest: number; average: number }[])[0];
   const periods = (recent as Row[]).map(toPeriod);
   return {
     friend: friendName(),
@@ -75,7 +118,10 @@ export async function getSummary(): Promise<Summary> {
     completedSeconds: s.total,
     completedCount: s.count,
     longestSeconds: s.longest,
+    averageSeconds: s.average,
     recent: periods,
+    notes: notes as Note[],
+    history: (history as { started: number; seconds: number }[]).reverse(),
   };
 }
 
@@ -116,7 +162,18 @@ export async function endWait(by: string): Promise<Period | null> {
   return rows.length ? toPeriod(rows[0]) : null;
 }
 
-export type PanelLocation = { channelId: string; messageId: string };
+/** Adds a note to the running wait. Returns null if nothing is running. */
+export async function addNote(author: string, body: string): Promise<Note | null> {
+  const rows = (await sql()`
+    INSERT INTO wait_notes (period_id, author, body)
+    SELECT id, ${author}, ${body} FROM wait_periods WHERE ended_at IS NULL
+    RETURNING id, period_id AS "periodId", author, body,
+      EXTRACT(EPOCH FROM created_at)::float8 AS created
+  `) as Note[];
+  return rows[0] ?? null;
+}
+
+export type PanelLocation ={ channelId: string; messageId: string };
 
 export async function getPanel(): Promise<PanelLocation | null> {
   const rows = (await sql()`SELECT value FROM settings WHERE key = 'panel'`) as { value: PanelLocation }[];

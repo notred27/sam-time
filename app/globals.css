@@ -1,35 +1,23 @@
 :root {
-  --bg: #f6f5f2;
+  --bg: #f3f7fb;
   --surface: #ffffff;
-  --text: #1c1b19;
-  --muted: #6b6862;
-  --border: #e4e1da;
-  --waiting: #d9480f;
-  --waiting-soft: #fff1e8;
-  --idle: #2b8a3e;
-  --idle-soft: #ebfbee;
-  --accent: #1c1b19;
+  --text: #0f1e33;
+  --muted: #51627a;
+  --border: #e3eaf2;
+  --grid: #e8eef5;
+  --sky: #d6eaf8;
+  --hill-back: #74aae6;
+  --hill: #2a6fc4;
+  --accent: #1f6feb;
+  --accent-ink: #1a5fcc;
+  --accent-soft: #e8f1fd;
   --accent-text: #ffffff;
   --danger: #c92a2a;
+  --display: var(--font-display), "Arial Black", ui-sans-serif, system-ui, sans-serif;
+  /* Side space that lines content up in a 600px column; full-width bands use it as padding. */
+  --gutter: max(20px, calc((100% - 600px) / 2));
+  --headline-size: clamp(44px, 13vw, 64px);
   color-scheme: light;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #141413;
-    --surface: #1e1d1b;
-    --text: #f1efea;
-    --muted: #a19d95;
-    --border: #2f2d2a;
-    --waiting: #ff8a4c;
-    --waiting-soft: #2e1f16;
-    --idle: #69db7c;
-    --idle-soft: #17271b;
-    --accent: #f1efea;
-    --accent-text: #141413;
-    --danger: #ff6b6b;
-    color-scheme: dark;
-  }
 }
 
 * {
@@ -45,67 +33,201 @@ body {
 }
 
 main {
-  max-width: 640px;
-  margin: 0 auto;
-  padding: 40px 16px 64px;
+  padding: 0 0 64px;
 }
 
-.eyebrow {
-  font-size: 12px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--muted);
+p {
   margin: 0;
 }
 
-h1 {
-  font-size: 28px;
-  margin: 4px 0 24px;
+h2 {
+  font-family: var(--display);
+  font-size: 20px;
+  margin: 0;
   letter-spacing: -0.01em;
 }
 
-.card {
+/* ---------- Hero: illustration with the headline over the hills ---------- */
+
+.hero {
+  position: relative;
+  height: 560px;
+  background: var(--sky);
+  overflow: hidden;
+}
+
+@media (min-width: 672px) {
+  .hero {
+    height: 640px;
+  }
+
+  .hero .friend-photo {
+    height: 500px;
+  }
+
+  .hero .friend-photo.cowboy {
+    height: 440px;
+  }
+}
+
+.hill {
+  position: absolute;
+}
+
+.hill-back {
+  left: 36%;
+  bottom: 120px;
+  width: 100%;
+  height: 260px;
+  background: var(--hill-back);
+  border-radius: 50% 50% 0 0;
+}
+
+.hill-front {
+  left: -15%;
+  right: -30%;
+  bottom: 0;
+  /* Tall enough for the three headline lines (2.76em) plus room above them. */
+  height: calc(72px + 2.76 * var(--headline-size));
+  background: var(--hill);
+  border-radius: 0 50% 0 0 / 0 100% 0 0;
+}
+
+.friend-photo {
+  position: absolute;
+  right: calc(var(--gutter) + 28px);
+  /* Sunk a little so the tilt doesn't lift a corner off the white bar. */
+  bottom: -24px;
+  width: auto;
+  height: 420px;
+  filter: drop-shadow(0 6px 12px rgb(0 0 0 / 0.18));
+  --tilt: 14deg;
+  transform: rotate(var(--tilt));
+  transform-origin: 50% 100%;
+}
+
+/* When Sam is here: the cowboy shot, upright and sitting on the white bar. It's wider, so it's shorter. */
+.friend-photo.cowboy {
+  --tilt: 0deg;
+  right: var(--gutter);
+  bottom: 0;
+  height: 330px;
+}
+
+/* Sam gets increasingly upset while we wait. */
+.waiting .friend-photo {
+  animation: fidget 1.6s ease-in-out infinite;
+}
+
+@keyframes fidget {
+  0%,
+  100% {
+    transform: rotate(calc(var(--tilt) - 2deg));
+  }
+  50% {
+    transform: rotate(calc(var(--tilt) + 2deg)) translateY(-3px);
+  }
+}
+
+.hero-top {
+  position: absolute;
+  top: 20px;
+  left: var(--gutter);
+  right: var(--gutter);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.eyebrow {
   background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 24px;
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 7px 12px;
+  border-radius: 999px;
 }
 
+.icon-button {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hero h1 {
+  position: absolute;
+  left: var(--gutter);
+  bottom: 24px;
+  margin: 0;
+  font-family: var(--display);
+  font-weight: 900;
+  font-size: var(--headline-size);
+  line-height: 0.92;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+  color: #ffffff;
+  text-shadow: 0 2px 12px rgb(0 0 0 / 0.15);
+}
+
+.hero h1 span {
+  display: block;
+}
+
+/* ---------- Status row + live clock ---------- */
+
+/* A full-width white band between the illustration and the stats. */
 .status {
-  text-align: center;
-  padding: 32px 24px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 18px var(--gutter) 20px;
 }
 
-.status.waiting {
-  background: var(--waiting-soft);
-  border-color: color-mix(in srgb, var(--waiting) 30%, transparent);
+.status-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
 }
 
-.pill {
-  display: inline-flex;
+.avatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  object-fit: cover;
+  object-position: 50% 4%;
+  background: var(--sky);
+  flex-shrink: 0;
+}
+
+.status-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.status-title {
+  display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 13px;
-  font-weight: 600;
-  padding: 4px 12px;
-  border-radius: 999px;
-  background: var(--idle-soft);
-  color: var(--idle);
-}
-
-.waiting .pill {
-  background: color-mix(in srgb, var(--waiting) 15%, transparent);
-  color: var(--waiting);
+  font-weight: 700;
+  font-size: 16px;
 }
 
 .dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: currentColor;
+  background: var(--muted);
+  flex-shrink: 0;
 }
 
 .waiting .dot {
+  background: var(--accent);
   animation: pulse 1.4s ease-in-out infinite;
 }
 
@@ -115,133 +237,457 @@ h1 {
   }
 }
 
-.clock {
-  font-variant-numeric: tabular-nums;
-  font-size: clamp(48px, 14vw, 76px);
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  margin: 12px 0 4px;
-}
-
-.waiting .clock {
-  color: var(--waiting);
+@media (prefers-reduced-motion: reduce) {
+  .waiting .friend-photo,
+  .waiting .dot {
+    animation: none;
+  }
 }
 
 .sub {
   color: var(--muted);
-  margin: 0 0 24px;
+  font-size: 13px;
   min-height: 1.5em;
 }
 
 button {
   font: inherit;
-  font-weight: 600;
-  font-size: 17px;
-  border: 0;
-  border-radius: 12px;
-  padding: 14px 28px;
   cursor: pointer;
-  background: var(--accent);
-  color: var(--accent-text);
-  min-width: 220px;
 }
 
-button:disabled {
+.cta {
+  border: 0;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-text);
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  min-height: 44px;
+  padding: 0 18px;
+  white-space: nowrap;
+}
+
+.cta:disabled {
   opacity: 0.5;
   cursor: progress;
 }
 
-.waiting button {
-  background: var(--waiting);
-  color: #fff;
+.clock-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  border-top: 1px solid var(--border);
+  margin-top: 18px;
+  padding-top: 14px;
+}
+
+.label {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.clock-row .label {
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.clock {
+  font-family: var(--display);
+  font-size: clamp(40px, 12vw, 56px);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+}
+
+.waiting .clock {
+  color: var(--accent-ink);
+}
+
+/* ---------- Thoughts on the running wait ---------- */
+
+.notes {
+  border-top: 1px solid var(--border);
+  margin-top: 18px;
+  padding-top: 14px;
+}
+
+.notes-title {
+  font-size: 16px;
+  margin-bottom: 8px;
+}
+
+.note-list {
+  list-style: none;
+  margin: 0 0 10px;
+  padding: 0;
+  max-height: 300px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.note-list li {
+  background: var(--accent-soft);
+  border-radius: 4px 14px 14px 14px;
+  padding: 8px 12px;
+  overflow-wrap: anywhere;
+}
+
+.note-meta {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.note-meta strong {
+  color: var(--text);
+}
+
+.note-form {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.note-form input {
+  flex: 1;
+  min-width: 0;
+  margin-top: 0;
+  border-radius: 999px;
+  padding: 10px 16px;
+}
+
+.note-as {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 6px;
+  padding-left: 16px;
+}
+
+.note-as a {
+  color: var(--accent-ink);
+}
+
+.error {
+  color: var(--danger);
+  margin-top: 12px;
+}
+
+/* ---------- Totals ---------- */
+
+.story {
+  padding: 28px var(--gutter) 0;
+}
+
+.lede {
+  font-size: 22px;
+  line-height: 1.3;
+  min-height: 1.3em;
+}
+
+.lede strong {
+  font-family: var(--display);
+  font-weight: 900;
 }
 
 .stats {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 12px;
-  margin: 16px 0;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
 }
 
-@media (min-width: 560px) {
-  .stats {
-    grid-template-columns: repeat(4, 1fr);
-  }
-}
-
-.stat {
-  padding: 16px;
-}
-
-.stat .label {
-  font-size: 12px;
-  color: var(--muted);
-}
-
-.stat .value {
-  font-size: 20px;
+.stats .value {
+  font-size: 18px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
 
-h2 {
-  font-size: 15px;
-  margin: 32px 0 8px;
+/* ---------- Recent waits: sideways-scrolling cards ---------- */
+
+.recent {
+  padding-top: 32px;
 }
 
-.history {
-  padding: 0;
-  overflow: hidden;
+.recent h2 {
+  padding: 0 var(--gutter);
 }
 
-.history ul {
+.cards {
   list-style: none;
   margin: 0;
-  padding: 0;
-}
-
-.history li {
+  padding: 14px var(--gutter) 8px;
   display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 12px 16px;
-  border-top: 1px solid var(--border);
+  /* Opening one card's thoughts shouldn't stretch the others. */
+  align-items: flex-start;
+  gap: 14px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-padding: 0 var(--gutter);
 }
 
-.history li:first-child {
-  border-top: 0;
+.card {
+  flex: 0 0 210px;
+  scroll-snap-align: start;
+  background: var(--surface);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow:
+    0 1px 2px rgb(15 30 51 / 0.06),
+    0 6px 18px rgb(15 30 51 / 0.06);
 }
 
-.history .when {
-  font-size: 14px;
+.card-art {
+  height: 104px;
+  background: var(--sky);
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
 }
 
-.history .who {
+.card-art img {
+  width: auto;
+  height: 240px;
+}
+
+.card-body {
+  padding: 12px 14px 14px;
+}
+
+.card .when,
+.card .who {
   font-size: 12px;
   color: var(--muted);
 }
 
-.history .dur {
-  font-weight: 600;
+.card .dur {
+  font-family: var(--display);
+  font-size: 22px;
   font-variant-numeric: tabular-nums;
-  white-space: nowrap;
+  margin: 2px 0;
 }
 
-.history .live {
-  color: var(--waiting);
+.card .dur small {
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.card-notes {
+  margin-top: 8px;
+  font-size: 12px;
+}
+
+.card-notes summary {
+  color: var(--accent-ink);
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.card-notes ul {
+  list-style: none;
+  margin: 6px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  overflow-wrap: anywhere;
+}
+
+.card.live {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
 }
 
 .empty {
-  padding: 16px;
+  padding: 14px var(--gutter) 0;
   color: var(--muted);
-  margin: 0;
 }
+
+/* ---------- Response-time chart ---------- */
+
+.chart-card {
+  margin: 28px var(--gutter) 0;
+  background: var(--surface);
+  border-radius: 16px;
+  padding: 18px 16px 12px;
+}
+
+.chart-head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 8px;
+  padding: 0 4px;
+}
+
+.chart-sub {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.segmented {
+  display: flex;
+  gap: 4px;
+  background: var(--bg);
+  border-radius: 999px;
+  padding: 3px;
+}
+
+.segmented button {
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+  min-height: 32px;
+  padding: 0 12px;
+  border-radius: 999px;
+}
+
+.segmented button[aria-pressed="true"] {
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: 0 1px 3px rgb(15 30 51 / 0.12);
+}
+
+.chart-box {
+  position: relative;
+  min-height: 220px;
+}
+
+.chart-box svg {
+  display: block;
+  overflow: visible;
+  touch-action: pan-y;
+}
+
+.chart-box svg:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+  border-radius: 8px;
+}
+
+.chart-box .grid {
+  stroke: var(--grid);
+  stroke-width: 1;
+}
+
+.chart-box .axis {
+  fill: var(--muted);
+  font-size: 11px;
+}
+
+.chart-box .avg {
+  stroke: var(--muted);
+  stroke-width: 1;
+  opacity: 0.6;
+}
+
+.chart-box .crosshair {
+  stroke: var(--muted);
+  stroke-width: 1;
+}
+
+.chart-box .series {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.chart-box .live-link {
+  stroke-dasharray: 4 4;
+}
+
+.chart-box .marker {
+  fill: var(--accent);
+  stroke: var(--surface);
+  stroke-width: 2;
+}
+
+.chart-box .marker.live {
+  fill: var(--surface);
+  stroke: var(--accent);
+  stroke-width: 3;
+}
+
+.chart-tip {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  pointer-events: none;
+  background: var(--text);
+  color: var(--bg);
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 12px;
+  white-space: nowrap;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.chart-tip strong {
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+
+.chart-empty {
+  color: var(--muted);
+  padding: 80px 0;
+  text-align: center;
+}
+
+.chart-table {
+  font-size: 13px;
+  padding: 4px 4px 0;
+}
+
+.chart-table summary {
+  color: var(--accent-ink);
+  cursor: pointer;
+  padding: 6px 0;
+}
+
+.chart-table-scroll {
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.chart-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.chart-table th,
+.chart-table td {
+  text-align: left;
+  padding: 6px 0;
+  border-top: 1px solid var(--border);
+  font-variant-numeric: tabular-nums;
+}
+
+.chart-table th {
+  color: var(--muted);
+  font-weight: 600;
+}
+
+/* ---------- Settings ---------- */
 
 .settings {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
-  margin-top: 32px;
+  margin: 32px var(--gutter) 0;
+  scroll-margin-top: 24px;
 }
 
 .settings label {
@@ -261,9 +707,4 @@ input {
   border: 1px solid var(--border);
   border-radius: 10px;
   padding: 10px 12px;
-}
-
-.error {
-  color: var(--danger);
-  margin: 12px 0 0;
 }

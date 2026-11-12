@@ -25,4 +25,16 @@ await sql`
   )
 `;
 
+// Thoughts people post while a wait is running. Deleting a wait deletes its notes.
+await sql`
+  CREATE TABLE IF NOT EXISTS wait_notes (
+    id SERIAL PRIMARY KEY,
+    period_id INTEGER NOT NULL REFERENCES wait_periods(id) ON DELETE CASCADE,
+    author TEXT,
+    body TEXT NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+  )
+`;
+await sql`CREATE INDEX IF NOT EXISTS wait_notes_period ON wait_notes (period_id)`;
+
 console.log("Database ready.");

@@ -3,7 +3,8 @@
 Tracks how long you've spent waiting for your friend. One Vercel deployment provides:
 
 - **A website** with a live timer, Start/End button, running total, average, longest wait, and history.
-- **Discord slash commands:** `/wait start`, `/wait end`, `/wait total`, `/wait panel`
+- **Discord slash commands:** `/wait start`, `/wait end`, `/wait total`, `/wait note`, `/wait panel`
+- **Thoughts while you wait:** while a wait is running, anyone can post notes from the website or with `/wait note`. They show under the timer, on the Discord panel, and on that wait's card afterwards.
 - **A pinned Discord panel** with ⏳ Start / ✅ Here / 🔄 Refresh buttons that update in place.
 - **Website → Discord announcements** through a channel webhook (optional).
 
@@ -82,8 +83,27 @@ To see your friend's name instead of "our friend", create `.env.local` containin
 
 Discord can't reach `localhost`, so test the bot on the deployed site.
 
+## Adding notes to an existing database
+
+If your database was set up before notes existed, run this once in the Neon SQL Editor (or `npm run db:setup`). Until you do, the site keeps working but shows no notes, and posting one fails.
+
+```sql
+CREATE TABLE IF NOT EXISTS wait_notes (
+  id SERIAL PRIMARY KEY,
+  period_id INTEGER NOT NULL REFERENCES wait_periods(id) ON DELETE CASCADE,
+  author TEXT,
+  body TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS wait_notes_period ON wait_notes (period_id);
+```
+
+Then run `npm run discord:register` again so `/wait note` shows up in Discord.
+
 ## How it works
 
 - `wait_periods` table: one row per wait (`started_at`, `ended_at`, who started/ended it). A unique partial index allows only **one open wait at a time**, so if two people press Start at the same moment, only one wait is created.
+- `wait_notes` table: thoughts posted during a wait, linked to it. Notes can only be added while a wait is running, and deleting a wait deletes its notes.
+- Waits under 3 minutes (`MIN_COUNTED_SECONDS` in `lib/constants.ts`) are left out of the chart and every average, but still appear in recent waits and count toward the total.
 - The total is the sum of finished waits plus the running one. The website ticks it live; Discord uses `<t:…:R>` timestamps, which update on their own.
 - `/api/discord` checks Discord's Ed25519 signature, answers right away, then does the database work in `after()`, so Discord's 3-second deadline isn't a problem even when the database is waking up.
